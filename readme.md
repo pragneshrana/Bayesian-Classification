@@ -1,3 +1,3 @@
 # Bayesian Classifiaction 
 This is my first code for doing classification as well as handaling of file on github through the local machine ...
-let's test whether it is working it or not.
+let's test whether it is working or not.
