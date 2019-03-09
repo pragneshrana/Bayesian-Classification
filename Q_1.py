@@ -69,9 +69,9 @@ training_class_dataset_name=[]
 
 #Training Testing validation BY SPLIT FUNCTION
 Training_set,Validate_set,Testing_set = split_dataframe(dataset)
-Training_set.to_csv("Training_set.csv")
-Validate_set.to_csv("Validate_set.csv")
-Testing_set.to_csv("Testing_set.csv")
+# Training_set.to_csv("Training_set.csv")
+# Validate_set.to_csv("Validate_set.csv")
+# Testing_set.to_csv("Testing_set.csv")
 
 
 for i in range(no_of_class):
@@ -82,7 +82,7 @@ for i in range(no_of_class):
     training_class_dataset_name[i]= dataset_seperation(dataset,Data_class[i])
 
 
-# print('Testing_set: ', Testing_set.shape,Validate_set.shape,Training_set.shape)
+print('Testing_set: ', Testing_set.shape,Validate_set.shape,Training_set.shape)
 
 
 #######################
@@ -192,7 +192,7 @@ def likelihood(class_dataset,data_likelhood):
     covariance_matrix = np.matrix(cov_calcualtion(class_dataset))
     # print('covariance_matrix: ', covariance_matrix)
     inv_covariance_matrix = np.linalg.inv(covariance_matrix)
-    # print('covariance_matrix: ', covariance_matrix)
+    print('covariance_matrix: ', covariance_matrix)
 
     #Multivariate gaussain distribution
 
@@ -227,25 +227,29 @@ for i in range(no_of_class):
     density_dataset["Evidence"] = density_dataset["Density_fucntion_class_"+str(i)] + density_dataset["Evidence"]
     # print('density_dataset["Evidence"]: ', density_dataset["Evidence"])
 
+posterior_dataset=pd.DataFrame([])
 #Divide likelyhood into prior by evidence
 for i in range(no_of_class):
-    density_dataset["Density_fucntion_class_"+str(i)]  = density_dataset["Density_fucntion_class_"+str(i)] / density_dataset["Evidence"]
+    posterior_dataset["Density_fucntion_class_"+str(i)]  = density_dataset["Density_fucntion_class_"+str(i)] / density_dataset["Evidence"]
 
 # print('density_dataset: ', density_dataset)
 
 #class Prediction 
+posterior_probability = []
 Predicted_class_label = []
-for i in range(len(density_dataset)):
-    density_array = list(density_dataset.iloc[i,:])
+for i in range(len(posterior_dataset)):
+    density_array = list(posterior_dataset.iloc[i,:])
     max_val = max(density_array)
+    posterior_probability.append(max_val)
     index_max = density_array.index(max_val)
     Predicted_class_label.append(index_max)
+print('posterior_probability',posterior_probability)
 
 #Acuuracy Check
 matched_count =  0
 not_matched_count = 0
 
-for i in range(len(density_dataset)):
+for i in range(len(posterior_dataset)):
     if (Predicted_class_label[i] == dataset["Class_label"][i]):
         matched_count+=1
     else:
@@ -253,6 +257,36 @@ for i in range(len(density_dataset)):
 
 Acuuracy  = matched_count / (matched_count + not_matched_count )
 print('Acuuracy: ', Acuuracy)
+
+########################
+# loss Matrix Defined  #
+########################
+l = pd.DataFrame([[0,1,2],
+                 [1,0,1],
+                 [2,1,0]])
+print('l: ', l)
+
+#############################
+# loss function calculation #
+#############################
+for i in range(len(dataset)):
+    alpha_i = int(dataset["Class_label"][i])
+    alpha_k = int(Predicted_class_label[i])
+    LQ_righT = 0
+    LQ_left = 0
+    for j in range(no_of_class):
+        left_condition  = l.iloc[alpha_i,j] * posterior_dataset["Density_fucntion_class_"+str(j)]
+        right_condition = l.iloc[alpha_k,j] * posterior_dataset["Density_fucntion_class_"+str(j)]
+        LQ_left += left_condition
+        LQ_righT += right_condition
+    if (LQ_left <= LQ_righT):
+        
+
+
+
+
+
+
 
 
 
