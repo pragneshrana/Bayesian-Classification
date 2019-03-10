@@ -22,7 +22,7 @@ column = ['X_1','X_2','Class_value']
 # plt.show()
 
 #Number of class in the dataset
-Data_class = dataset.iloc[:,-1].unique() #class in dataset 
+Data_class = dataset.iloc[:,-1].unique() #classes in dataset 
 Data_class = np.sort(Data_class)
 no_of_class = len(Data_class)       #number of class
 no_of_feature = dataset.shape[1]-1      #-1 as last column is outcome
@@ -62,9 +62,6 @@ Training_set = pd.DataFrame([])
 Testing_set = pd.DataFrame([])
 Validate_set = pd.DataFrame([])
 
-#Class dataset name and training dataset name 
-class_dataset_name = []
-training_class_dataset_name=[]
 
 
 #Training Testing validation BY SPLIT FUNCTION
@@ -73,6 +70,9 @@ Training_set,Validate_set,Testing_set = split_dataframe(dataset)
 # Validate_set.to_csv("Validate_set.csv")
 # Testing_set.to_csv("Testing_set.csv")
 
+#Class dataset name and training dataset name 
+class_dataset_name = []
+training_class_dataset_name=[]
 
 for i in range(no_of_class):
     class_dataset_name.append('class_dataset'+ '_'+ str(Data_class[i]))
@@ -80,22 +80,11 @@ for i in range(no_of_class):
     #class wise dataframe
     data = dataset_seperation(dataset,Data_class[i])
     training_class_dataset_name[i]= dataset_seperation(dataset,Data_class[i])
+    print('training_class_dataset_name: ', training_class_dataset_name[i])
 
 
 print('Testing_set: ', Testing_set.shape,Validate_set.shape,Training_set.shape)
 
-
-#######################
-# Prior of each class #
-#######################
-
-Total_sample = len(Training_set)
-# print('Total_sample: ', Total_sample)
-class_prior = []
-
-for i in range(no_of_class):
-    class_prior.append(len(training_class_dataset_name[i])/Total_sample)
-# print('class_prior: ', class_prior)
 
 
 #################################
@@ -386,17 +375,17 @@ def likelihood(class_dataset,data_likelyhood):
     #For Model:3
     # covariance_matrix = np.matrix(cov_calcualtion_3(class_dataset))
     #For Model:4
-    # covariance_matrix = np.matrix(cov_calcualtion_4(data_likelyhood))
+    covariance_matrix = np.matrix(cov_calcualtion_4(data_likelyhood))
     #For Model:5
-    covariance_matrix = np.matrix(cov_calcualtion_5(class_dataset))
+    # covariance_matrix = np.matrix(cov_calcualtion_5(class_dataset))
 
     # print('covariance_matrix: ', covariance_matrix)
     inv_covariance_matrix = np.linalg.inv(covariance_matrix)
-    print('covariance_matrix: ', covariance_matrix)
 
     #Multivariate gaussain distribution
 
     cov_matrix_det = np.linalg.det(covariance_matrix)
+    print('cov_matrix_det: ', cov_matrix_det)
     density_function_vector=[]
     
     #mean vector
@@ -410,81 +399,195 @@ def likelihood(class_dataset,data_likelyhood):
         density_function_vector.append(float(density_function))
     # print('density_function_vector: ', density_function_vector)
     return density_function_vector
-    
-#Likelyhood calculation
 
-class_likelyhood = []
-density_dataset=pd.DataFrame([])
+def prediction(Training_set):
+    #######################
+    # Prior of each class #
+    #######################
+    Total_sample = len(Training_set)
+    # print('Total_sample: ', Total_sample)
+    class_prior = []
+
+    for i in range(no_of_class):
+        class_prior.append(len(training_class_dataset_name[i])/Total_sample)
+    # print('class_prior: ', class_prior)
+
+
+    #Likelyhood calculation
+    class_likelyhood = []
+    density_dataset=pd.DataFrame([])
+    for i in range(no_of_class):
+        density_function_vector = likelihood(training_class_dataset_name[i],dataset) 
+        density_dataset["Density_fucntion_class_"+str(i)] = density_function_vector 
+        #likelyhood into prior
+        density_dataset["Density_fucntion_class_"+str(i)] =  density_dataset["Density_fucntion_class_"+str(i)].multiply(class_prior[i])
+
+    #Calculation of Evidence
+    density_dataset["Evidence"] = np.zeros(len(density_dataset))    #Evidence intialized with zeros 
+    for i in range(no_of_class):
+        density_dataset["Evidence"] = density_dataset["Density_fucntion_class_"+str(i)] + density_dataset["Evidence"]
+        # print('density_dataset["Evidence"]: ', density_dataset["Evidence"])
+
+    posterior_dataset=pd.DataFrame([])
+    #Divide likelyhood into prior by evidence
+    for i in range(no_of_class):
+        posterior_dataset["Density_fucntion_class_"+str(i)]  = density_dataset["Density_fucntion_class_"+str(i)] / density_dataset["Evidence"]
+
+    print('density_dataset: ', density_dataset)
+
+    ########################
+    # loss Matrix Defined  #
+    ########################
+    l = np.matrix([ [0,1,2],
+                    [1,0,1],
+                    [2,1,0] ])
+    print('l: ', l)
+
+    #############################
+    # loss function calculation #
+    #############################
+
+    # True_count = 0
+    # for i in range(len(dataset)):
+    #     alpha_i = int(dataset["Class_label"][i])
+    #     alpha_k = int(Predicted_class_label[i])
+    #     LQ_righT = 0
+    #     LQ_left = 0
+    #     for j in range(no_of_class):
+    #         left_condition  = l.iloc[alpha_i,j] * posterior_dataset["Density_fucntion_class_"+str(j)]
+    #         right_condition = l.iloc[alpha_k,j] * posterior_dataset["Density_fucntion_class_"+str(j)]
+    #         LQ_left += left_condition
+    #         LQ_righT += right_condition
+    #     if (LQ_left <= LQ_righT):
+    #         True_count +=1
+
+    #class Prediction 
+    posterior_probability = []
+    Predicted_class_label = []
+    for i in range(len(density_dataset)):
+        posterior_array = density_dataset.iloc[i,:3]
+        loss_func_array = posterior_array.dot(l)    #loss_func and posterior array multiplication (1*3)(3*3)
+        min_val = min(loss_func_array)
+        posterior_probability.append(min_val)
+        index_max = list(loss_func_array).index(min_val)
+        Predicted_class_label.append(index_max)
+    print('posterior_probability',posterior_probability)
+
+
+    return Predicted_class_label
+
+####################
+# Confusion Matrix #
+####################
+def confusion_matrix(actual_result,predicted_result):
+    '''
+    Plots the confusion matrix. For that you have to pass the two array actual result(given classes) and
+    Predicted result 
+    '''
+    import pandas as pd
+    import numpy as np
+    classes_name =  list (set (actual_result))
+    no_of_classes = len(classes_name)
+    conf_matrix = pd.DataFrame(np.zeros((no_of_classes, no_of_classes)))
+    combined_array_dataset = pd.DataFrame()
+    combined_array_dataset [0] = actual_result
+    combined_array_dataset [1] = predicted_result
+    for i in range(no_of_classes):
+        subdataset = combined_array_dataset[combined_array_dataset [0] == classes_name[i]]
+        print('subdataset: ', subdataset)
+        val = subdataset[1].value_counts()
+        val.sort_index(inplace=True)        #sorting values by index
+        print('val: ', val.shape)
+        indexList = val.index
+        print('indexList: ', indexList)
+            
+        if (len(indexList) == no_of_classes):
+            for j in range(no_of_classes):
+                #If there is no mis classification
+                if(indexList[j] == j):
+                    print('j: ', j)
+                    print('indexList[j]',indexList[j])
+                    try:
+                        conf_matrix.iloc[i,j] = val.iloc[j]
+                    except IndexError:
+                        conf_matrix.iloc[i,j] = 0
+                    print('conf_matrix: ', conf_matrix)
+                else:
+                    conf_matrix.iloc[i,j] = 0
+                    print('conf_matrix: ', conf_matrix)
+        else:
+            # In case if class has less misclassification than total class
+            m=0
+            for j in range(no_of_classes):
+                #If there is no mis classification
+                try:
+                    if(indexList[m] == j):
+                        try:
+                            conf_matrix.iloc[i,j] = val.iloc[m]
+                        except IndexError:
+                            conf_matrix.iloc[i,j] = 0
+                        print('conf_matrix: ', conf_matrix)
+                        m+=1
+                    else:
+                        continue  
+                except IndexError:
+                    continue    
+    print('conf_matrix: ', conf_matrix)
+    return conf_matrix
+
+def accuracy(Predicted_class_label , Actual_class_label):
+    #Acuuracy Check
+    matched_count =  0
+    not_matched_count = 0
+
+    for i in range(len(Predicted_class_label)):
+        if (Predicted_class_label[i] == Actual_class_label):
+            matched_count+=1
+        else:
+            not_matched_count+=1
+
+    Acuuracy  = matched_count / (matched_count + not_matched_count )
+    print('Acuuracy: ', Acuuracy)
+
+Predicted_class_label = prediction(Testing_set)   
+accuracy(Predicted_class_label, dataset["Class_label"][i])
+
+
+####Creation of confusion matrix and plotting
+import seaborn as sn
+confu_matrix = confusion_matrix(dataset["Class_label"],Predicted_class_label)
+plt.figure(figsize = (10,7))
+sn.heatmap(confu_matrix, annot=True)
+plt.show()
+
+import matplotlib.pyplot as plt
 for i in range(no_of_class):
-    density_function_vector = likelihood(training_class_dataset_name[i],dataset) 
-    density_dataset["Density_fucntion_class_"+str(i)] = density_function_vector 
-    #likelyhood into prior
-    density_dataset["Density_fucntion_class_"+str(i)] =  density_dataset["Density_fucntion_class_"+str(i)].multiply(class_prior[i])
+    x1 = training_class_dataset_name[i].iloc[:,1]
+    x2 = training_class_dataset_name[i].iloc[:,2]
+    plt.scatter(x1,x2,label = 'Scatter plot of Data', marker = 'o')
+plt.show()
 
-#Calculationm of Evidence
-density_dataset["Evidence"] = np.zeros(len(density_dataset))    #Evidence intialized with zeros 
-for i in range(no_of_class):
-    density_dataset["Evidence"] = density_dataset["Density_fucntion_class_"+str(i)] + density_dataset["Evidence"]
-    # print('density_dataset["Evidence"]: ', density_dataset["Evidence"])
+#Boundary Plotting 
+x1 = np.linspace(-100,50,100)
+x2 = np.linspace(-100,80,100)
+dataframe = pd.DataFrame([])
+dataframe['X1'] = x1
+dataframe['X2'] = x2
+print('dataframe: ', dataframe)
+Predi_class_label_dataframe = prediction(dataframe)
+print('Predi_class_label_dataframe: ', Predi_class_label_dataframe)
+# dataframe['Class_label'] = Predi_class_label_dataframe    
 
-posterior_dataset=pd.DataFrame([])
-#Divide likelyhood into prior by evidence
-for i in range(no_of_class):
-    posterior_dataset["Density_fucntion_class_"+str(i)]  = density_dataset["Density_fucntion_class_"+str(i)] / density_dataset["Evidence"]
-
-# print('density_dataset: ', density_dataset)
-
-########################
-# loss Matrix Defined  #
-########################
-l = np.matrix([[0,1,2],
-                 [1,0,1],
-                 [2,1,0]])
-print('l: ', l)
-
-#############################
-# loss function calculation #
-#############################
-
-# True_count = 0
-# for i in range(len(dataset)):
-#     alpha_i = int(dataset["Class_label"][i])
-#     alpha_k = int(Predicted_class_label[i])
-#     LQ_righT = 0
-#     LQ_left = 0
-#     for j in range(no_of_class):
-#         left_condition  = l.iloc[alpha_i,j] * posterior_dataset["Density_fucntion_class_"+str(j)]
-#         right_condition = l.iloc[alpha_k,j] * posterior_dataset["Density_fucntion_class_"+str(j)]
-#         LQ_left += left_condition
-#         LQ_righT += right_condition
-#     if (LQ_left <= LQ_righT):
-#         True_count +=1
-
-#class Prediction 
-posterior_probability = []
-Predicted_class_label = []
-for i in range(len(posterior_dataset)):
-    posterior_array = posterior_dataset.iloc[i,:]
-    loss_func_array = posterior_array.dot(l)    #loss_func and posterior array multiplication (1*3)(3*3)
-    max_val = max(loss_func_array)
-    posterior_probability.append(max_val)
-    index_max = list(loss_func_array).index(max_val)
-    Predicted_class_label.append(index_max)
-print('posterior_probability',posterior_probability)
+# for i in range(no_of_class):
+#     class_dataset_name.append('class_dataset'+ '_'+ str(Data_class[i]))
+#     training_class_dataset_name.append('training_class_dataset'+ '_'+ str(Data_class[i]))
+#     #class wise dataframe
+#     data = dataset_seperation(dataset,Data_class[i])
+#     training_class_dataset_name[i]= dataset_seperation(dataset,Data_class[i])
+#     print('training_class_dataset_name: ', training_class_dataset_name[i])
 
 
-#Acuuracy Check
-matched_count =  0
-not_matched_count = 0
-
-for i in range(len(posterior_dataset)):
-    if (Predicted_class_label[i] == dataset["Class_label"][i]):
-        matched_count+=1
-    else:
-        not_matched_count+=1
-
-Acuuracy  = matched_count / (matched_count + not_matched_count )
-print('Acuuracy: ', Acuuracy)
+    # plt.contour([X, Y,] Z, [levels], **kwargs)
 
 
 
