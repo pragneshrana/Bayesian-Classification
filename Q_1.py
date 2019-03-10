@@ -101,7 +101,197 @@ for i in range(no_of_class):
 #################################
 # covariance Matrix calculation #
 #################################
-def cov_calcualtion(data_cov):
+
+#Model_1
+def cov_calcualtion_1(data_cov):
+    '''
+    It will calculate cpvariance matrix.
+    based on data set you have passed
+    it calculates covariance matrix based passing two columns
+    '''
+   
+    no_of_feature = data_cov.shape[1]
+    covariance_matrix = np.identity(no_of_feature)
+    return covariance_matrix
+
+#Model:2
+def cov_calcualtion_2(data_cov):
+    '''
+    It will calculate cpvariance matrix.
+    based on data set you have passed
+    it calculates covariance matrix based passing two columns
+    '''
+   
+    no_of_feature = data_cov.shape[1]
+    n=2 #as pasing two values for correlation 
+
+    data=pd.DataFrame([])
+    covariance_matrix = np.zeros((no_of_feature,no_of_feature))
+
+    # identity = np.identity(no_of_feature)
+
+    #For(sigma(x,y))
+    for p in range(no_of_feature):
+        for q in range(p,no_of_feature):    #p as matrix is semi-positive and symm 
+
+            data[0]=data_cov.iloc[:,p]
+            data[1]=data_cov.iloc[:,q]  
+
+            #mean vector
+            mean = []
+            for i in range(n):
+                mean.append(data.iloc[:,i].mean())
+            
+            #minus from mean
+            data_minus_mean = []    #DMM
+            for i in range(len(data)):
+                X = data.iloc[i,:]
+                data_minus_mean.append(X-mean)
+            
+            #multiplication of two column
+            multiply_DMM = []
+            for i in range(len(data)):
+                multi= 1
+                for j in range (n):
+                    multi = data_minus_mean[i][j]*multi
+                multiply_DMM.append(multi)
+
+            #addition
+            summation_feature = []
+            covari = []
+            for i in range(n):
+                summation = 0
+                for j in range (len(data)):
+                    summation = summation + multiply_DMM[j]
+                summation_feature.append(summation)
+                covari.append(summation_feature[i]/(len(data)-1))
+
+            #Adding ans to matrix
+            covariance_matrix[p,q] = covari[0]
+            covariance_matrix[q,p] = covari[1]
+
+    # covariance_matrix = np.multiply(covariance_matrix,identity)
+    return covariance_matrix
+    
+#Model:3
+def cov_calcualtion_3(data_cov):
+    '''
+    It will calculate cpvariance matrix.
+    based on data set you have passed
+    it calculates covariance matrix based passing two columns
+    '''
+   
+    no_of_feature = data_cov.shape[1]
+    n=2 #as pasing two values for correlation 
+
+    data=pd.DataFrame([])
+    covariance_matrix = np.zeros((no_of_feature,no_of_feature))
+
+    # identity = np.identity(no_of_feature)
+
+    #For(sigma(x,y))
+    for p in range(no_of_feature):
+        for q in range(p,no_of_feature):    #p as matrix is semi-positive and symm 
+
+            data[0]=data_cov.iloc[:,p]
+            data[1]=data_cov.iloc[:,q]  
+
+            #mean vector
+            mean = []
+            for i in range(n):
+                mean.append(data.iloc[:,i].mean())
+            
+            #minus from mean
+            data_minus_mean = []    #DMM
+            for i in range(len(data)):
+                X = data.iloc[i,:]
+                data_minus_mean.append(X-mean)
+            
+            #multiplication of two column
+            multiply_DMM = []
+            for i in range(len(data)):
+                multi= 1
+                for j in range (n):
+                    multi = data_minus_mean[i][j]*multi
+                multiply_DMM.append(multi)
+
+            #addition
+            summation_feature = []
+            covari = []
+            for i in range(n):
+                summation = 0
+                for j in range (len(data)):
+                    summation = summation + multiply_DMM[j]
+                summation_feature.append(summation)
+                covari.append(summation_feature[i]/(len(data)-1))
+
+            #Adding ans to matrix
+            covariance_matrix[p,q] = covari[0]
+            covariance_matrix[q,p] = covari[1]
+            
+    # covariance_matrix = np.multiply(covariance_matrix,identity)
+    return covariance_matrix
+
+#Model:4
+def cov_calcualtion_4(data_cov):
+    '''
+    It will calculate cpvariance matrix.
+    based on data set you have passed
+    it calculates covariance matrix based passing two columns
+    '''
+   
+    no_of_feature = data_cov.shape[1]
+    n=2 #as pasing two values for correlation 
+
+    data=pd.DataFrame([])
+    covariance_matrix = np.zeros((no_of_feature,no_of_feature))
+
+    #For(sigma(x,y))
+    for p in range(no_of_feature):
+        for q in range(p,no_of_feature):    #p as matrix is semi-positive and symm 
+
+            data[0]=data_cov.iloc[:,p]
+            data[1]=data_cov.iloc[:,q]  
+
+            #mean vector
+            mean = []
+            for i in range(n):
+                mean.append(data.iloc[:,i].mean())
+            
+            #minus from mean
+            data_minus_mean = []    #DMM
+            for i in range(len(data)):
+                X = data.iloc[i,:]
+                data_minus_mean.append(X-mean)
+            
+            #multiplication of two column
+            multiply_DMM = []
+            for i in range(len(data)):
+                multi= 1
+                for j in range (n):
+                    multi = data_minus_mean[i][j]*multi
+                multiply_DMM.append(multi)
+
+            #addition
+            summation_feature = []
+            covari = []
+            for i in range(n):
+                summation = 0
+                for j in range (len(data)):
+                    summation = summation + multiply_DMM[j]
+                summation_feature.append(summation)
+                covari.append(summation_feature[i]/(len(data)-1))
+
+            #Adding ans to matrix
+            covariance_matrix[p,q] = covari[0]
+            covariance_matrix[q,p] = covari[1]
+    return covariance_matrix
+    
+
+
+
+#Model:5
+def cov_calcualtion_5(data_cov):
     '''
     It will calculate cpvariance matrix.
     based on data set you have passed
@@ -176,20 +366,30 @@ def mean_of_class(data_set):
 # Posterior probability of each class#
 ######################################
 
-def likelihood(class_dataset,data_likelhood):
+def likelihood(class_dataset,data_likelyhood):
     '''
     This fucntion calculated likelyhood density of each datapoints 
     and returns the density vector for each class
     pass arguments as (class based dataset , whole dataset)
     '''
-    #Number of class in the data_likelhood
+    #Number of class in the data_likelyhood
     
-    data_likelhood = data_likelhood.drop(columns=['Class_label']) #Dropped result colm
+    data_likelyhood = data_likelyhood.drop(columns=['Class_label']) #Dropped result colm
     class_dataset = class_dataset.drop(columns=['Class_label']) #Dropped result colm
-    no_of_feature = data_likelhood.shape[1]     
+    no_of_feature = data_likelyhood.shape[1]     
     n=no_of_feature
-    #covariacne called
-    covariance_matrix = np.matrix(cov_calcualtion(class_dataset))
+    ####covariacne called
+    #For Model:1
+    # covariance_matrix = np.matrix(cov_calcualtion_1(class_dataset))
+    #For Model:2
+    # covariance_matrix = np.matrix(cov_calcualtion_2(data_likelyhood))
+    #For Model:3
+    # covariance_matrix = np.matrix(cov_calcualtion_3(class_dataset))
+    #For Model:4
+    # covariance_matrix = np.matrix(cov_calcualtion_4(data_likelyhood))
+    #For Model:5
+    covariance_matrix = np.matrix(cov_calcualtion_5(class_dataset))
+
     # print('covariance_matrix: ', covariance_matrix)
     inv_covariance_matrix = np.linalg.inv(covariance_matrix)
     print('covariance_matrix: ', covariance_matrix)
@@ -202,8 +402,8 @@ def likelihood(class_dataset,data_likelhood):
     #mean vector
     mean = mean_of_class(class_dataset)
 
-    for i in range(len(data_likelhood)):
-        X=np.array(data_likelhood.iloc[i,:])
+    for i in range(len(data_likelyhood)):
+        X=np.array(data_likelyhood.iloc[i,:])
         a = (X-mean).reshape(n,1)
         #Gaussiaan Calcualtion
         density_function = (1/( (( 2*np.pi)**(n/2) )* (np.sqrt(cov_matrix_det))) )* (np.exp((-1/2) * np.transpose(a) * inv_covariance_matrix * a ))
@@ -234,16 +434,44 @@ for i in range(no_of_class):
 
 # print('density_dataset: ', density_dataset)
 
+########################
+# loss Matrix Defined  #
+########################
+l = np.matrix([[0,1,2],
+                 [1,0,1],
+                 [2,1,0]])
+print('l: ', l)
+
+#############################
+# loss function calculation #
+#############################
+
+# True_count = 0
+# for i in range(len(dataset)):
+#     alpha_i = int(dataset["Class_label"][i])
+#     alpha_k = int(Predicted_class_label[i])
+#     LQ_righT = 0
+#     LQ_left = 0
+#     for j in range(no_of_class):
+#         left_condition  = l.iloc[alpha_i,j] * posterior_dataset["Density_fucntion_class_"+str(j)]
+#         right_condition = l.iloc[alpha_k,j] * posterior_dataset["Density_fucntion_class_"+str(j)]
+#         LQ_left += left_condition
+#         LQ_righT += right_condition
+#     if (LQ_left <= LQ_righT):
+#         True_count +=1
+
 #class Prediction 
 posterior_probability = []
 Predicted_class_label = []
 for i in range(len(posterior_dataset)):
-    density_array = list(posterior_dataset.iloc[i,:])
-    max_val = max(density_array)
+    posterior_array = posterior_dataset.iloc[i,:]
+    loss_func_array = posterior_array.dot(l)    #loss_func and posterior array multiplication (1*3)(3*3)
+    max_val = max(loss_func_array)
     posterior_probability.append(max_val)
-    index_max = density_array.index(max_val)
+    index_max = list(loss_func_array).index(max_val)
     Predicted_class_label.append(index_max)
 print('posterior_probability',posterior_probability)
+
 
 #Acuuracy Check
 matched_count =  0
@@ -258,68 +486,6 @@ for i in range(len(posterior_dataset)):
 Acuuracy  = matched_count / (matched_count + not_matched_count )
 print('Acuuracy: ', Acuuracy)
 
-########################
-# loss Matrix Defined  #
-########################
-l = pd.DataFrame([[0,1,2],
-                 [1,0,1],
-                 [2,1,0]])
-print('l: ', l)
-
-#############################
-# loss function calculation #
-#############################
-for i in range(len(dataset)):
-    alpha_i = int(dataset["Class_label"][i])
-    alpha_k = int(Predicted_class_label[i])
-    LQ_righT = 0
-    LQ_left = 0
-    for j in range(no_of_class):
-        left_condition  = l.iloc[alpha_i,j] * posterior_dataset["Density_fucntion_class_"+str(j)]
-        right_condition = l.iloc[alpha_k,j] * posterior_dataset["Density_fucntion_class_"+str(j)]
-        LQ_left += left_condition
-        LQ_righT += right_condition
-    if (LQ_left <= LQ_righT):
-        
-
-
-
-
-
-
-
-
-
-#DataValidation
-
-# def DataValidation(feture_data_point):
-#     #Number of class in the data_likelhood
-#     no_of_feature = data_likelhood.shape[1]-1      #-1 as last column is outcome
-#     n=no_of_feature
-#     data_likelhood = data_likelhood.drop(columns=['Class_label']) #Dropped result colm
-
-#     #covariacne called
-#     covariance_matrix = np.matrix(cov_calcualtion(data_likelhood))
-#     inv_covariance_matrix = np.linalg.inv(covariance_matrix)
-
-#     #Multivariate gaussain distribution
-
-#     cov_matrix_det = np.linalg.det(covariance_matrix)
-#     density_function_vector=[]
-#      #mean vector
-#     mean = []
-#     for i in range(n):
-#         mean.append(data_likelhood.iloc[:,i].mean())
-
-#     for i in range(len(data_likelhood)):
-#         X=np.array(data_likelhood.iloc[i,:])
-#         a = (X-mean).reshape(n,1)
-#         density_function = (1/( (( 2*np.pi)**(n/2) )* (np.sqrt(cov_matrix_det))) )* (np.exp((-1/2) * np.transpose(a) * inv_covariance_matrix * a ))
-#         density_function_vector.append(float(density_function))
-#     return density_function_vector
-
-# for i in range(len(dataset)):
-#     dataset_validation = 
 
 
 
