@@ -69,21 +69,35 @@ Training_set,Validate_set,Testing_set = split_dataframe(dataset)
 # Training_set.to_csv("Training_set.csv")
 # Validate_set.to_csv("Validate_set.csv")
 # Testing_set.to_csv("Testing_set.csv")
+def class_wise_dataset(training_dataset):
+    training_dataset = training_dataset.reset_index(drop=True)  #reindexing the old dataset 
+    print('training_dataset',training_dataset)
+    #Class dataset name and training dataset name 
+    class_dataset_name = []
+    class_wise_dataframe=[]
 
-#Class dataset name and training dataset name 
-class_dataset_name = []
-training_class_dataset_name=[]
+    Data_class = training_dataset.iloc[:,-1].unique() #classes in dataset 
+    Data_class = np.sort(Data_class)
+    print('Data_class',Data_class)
+    no_of_class = len(Data_class)       #number of class
 
-for i in range(no_of_class):
-    class_dataset_name.append('class_dataset'+ '_'+ str(Data_class[i]))
-    training_class_dataset_name.append('training_class_dataset'+ '_'+ str(Data_class[i]))
-    #class wise dataframe
-    data = dataset_seperation(dataset,Data_class[i])
-    training_class_dataset_name[i]= dataset_seperation(dataset,Data_class[i])
-    print('training_class_dataset_name: ', training_class_dataset_name[i])
+    for i in range(no_of_class):
+        class_dataset_name.append('class_dataset'+ '_'+ str(Data_class[i]))
+        class_wise_dataframe.append('class_wise_dataframe'+ '_'+ str(Data_class[i]))
+        print('class_wise_dataframe',class_wise_dataframe)
+        class_dataset= pd.DataFrame([])
+        for j in range(len(training_dataset)):
+            if (training_dataset.iloc[:,-1][j] == Data_class[i]):
+                class_dataset = class_dataset.append(training_dataset.iloc[j,:])
+        #class wise dataframe
+        class_wise_dataframe[i]=class_dataset #dataset_seperation(training_dataset,Data_class[i])
+        print('trining_dataset'  ,class_wise_dataframe[i] )
+        print("kk")
+    return class_wise_dataframe
 
+training_class_dataset_name = class_wise_dataset(Training_set)
+print('training_class_dataset_name',training_class_dataset_name)
 
-print('Testing_set: ', Testing_set.shape,Validate_set.shape,Training_set.shape)
 
 
 
@@ -361,10 +375,16 @@ def likelihood(class_dataset,data_likelyhood):
     and returns the density vector for each class
     pass arguments as (class based dataset , whole dataset)
     '''
+
+    print('class_dataset',class_dataset)
+    print('data_likelyhood',data_likelyhood)
     #Number of class in the data_likelyhood
-    
-    data_likelyhood = data_likelyhood.drop(columns=['Class_label']) #Dropped result colm
-    class_dataset = class_dataset.drop(columns=['Class_label']) #Dropped result colm
+    header_list = list(data_likelyhood)
+    if ('Class_label' in header_list):
+        data_likelyhood = data_likelyhood.drop(columns=['Class_label']) #Dropped result colm
+    header_list = list(class_dataset)
+    if ('Class_label' in header_list):
+        class_dataset = class_dataset.drop(columns=['Class_label']) #Dropped result colm
     no_of_feature = data_likelyhood.shape[1]     
     n=no_of_feature
     ####covariacne called
@@ -375,9 +395,9 @@ def likelihood(class_dataset,data_likelyhood):
     #For Model:3
     # covariance_matrix = np.matrix(cov_calcualtion_3(class_dataset))
     #For Model:4
-    covariance_matrix = np.matrix(cov_calcualtion_4(data_likelyhood))
+    # covariance_matrix = np.matrix(cov_calcualtion_4(data_likelyhood))
     #For Model:5
-    # covariance_matrix = np.matrix(cov_calcualtion_5(class_dataset))
+    covariance_matrix = np.matrix(cov_calcualtion_5(class_dataset))
 
     # print('covariance_matrix: ', covariance_matrix)
     inv_covariance_matrix = np.linalg.inv(covariance_matrix)
@@ -400,13 +420,15 @@ def likelihood(class_dataset,data_likelyhood):
     # print('density_function_vector: ', density_function_vector)
     return density_function_vector
 
-def prediction(Training_set):
+def prediction(Training_set,training_class_dataset_name):
     #######################
     # Prior of each class #
     #######################
     Total_sample = len(Training_set)
-    # print('Total_sample: ', Total_sample)
+    print('Total_sample: ', Total_sample)
     class_prior = []
+
+    # training_class_dataset_name = class_wise_dataset(Training_set)
 
     for i in range(no_of_class):
         class_prior.append(len(training_class_dataset_name[i])/Total_sample)
@@ -417,7 +439,7 @@ def prediction(Training_set):
     class_likelyhood = []
     density_dataset=pd.DataFrame([])
     for i in range(no_of_class):
-        density_function_vector = likelihood(training_class_dataset_name[i],dataset) 
+        density_function_vector = likelihood(training_class_dataset_name[i],Training_set) 
         density_dataset["Density_fucntion_class_"+str(i)] = density_function_vector 
         #likelyhood into prior
         density_dataset["Density_fucntion_class_"+str(i)] =  density_dataset["Density_fucntion_class_"+str(i)].multiply(class_prior[i])
@@ -470,11 +492,15 @@ def prediction(Training_set):
         min_val = min(loss_func_array)
         posterior_probability.append(min_val)
         index_max = list(loss_func_array).index(min_val)
+        print(index_max)
         Predicted_class_label.append(index_max)
     print('posterior_probability',posterior_probability)
 
 
     return Predicted_class_label
+
+
+
 
 ####################
 # Confusion Matrix #
@@ -536,12 +562,14 @@ def confusion_matrix(actual_result,predicted_result):
     return conf_matrix
 
 def accuracy(Predicted_class_label , Actual_class_label):
+    print("Predicted_class_label",Predicted_class_label)
+    print("Actual_class_label",Actual_class_label)
     #Acuuracy Check
     matched_count =  0
     not_matched_count = 0
 
     for i in range(len(Predicted_class_label)):
-        if (Predicted_class_label[i] == Actual_class_label):
+        if (Predicted_class_label[i] == Actual_class_label[i]):
             matched_count+=1
         else:
             not_matched_count+=1
@@ -549,13 +577,16 @@ def accuracy(Predicted_class_label , Actual_class_label):
     Acuuracy  = matched_count / (matched_count + not_matched_count )
     print('Acuuracy: ', Acuuracy)
 
-Predicted_class_label = prediction(Testing_set)   
-accuracy(Predicted_class_label, dataset["Class_label"][i])
+Actual_class_label = Training_set["Class_label"]
+Actual_class_label = Actual_class_label.reset_index(drop=True)  #reindexing the old dataset 
+
+Predicted_class_label = prediction(Training_set,training_class_dataset_name)   
+accuracy(Predicted_class_label, Actual_class_label)
 
 
 ####Creation of confusion matrix and plotting
 import seaborn as sn
-confu_matrix = confusion_matrix(dataset["Class_label"],Predicted_class_label)
+confu_matrix = confusion_matrix(Actual_class_label,Predicted_class_label)
 plt.figure(figsize = (10,7))
 sn.heatmap(confu_matrix, annot=True)
 plt.show()
@@ -565,30 +596,29 @@ for i in range(no_of_class):
     x1 = training_class_dataset_name[i].iloc[:,1]
     x2 = training_class_dataset_name[i].iloc[:,2]
     plt.scatter(x1,x2,label = 'Scatter plot of Data', marker = 'o')
-plt.show()
 
 #Boundary Plotting 
-x1 = np.linspace(-100,50,100)
-x2 = np.linspace(-100,80,100)
+x1 = np.linspace(-100,50,500)
+x2 = np.linspace(-100,80,500)
 dataframe = pd.DataFrame([])
 dataframe['X1'] = x1
 dataframe['X2'] = x2
-print('dataframe: ', dataframe)
-Predi_class_label_dataframe = prediction(dataframe)
+print(dataframe)
+Predi_class_label_dataframe = prediction(dataframe,training_class_dataset_name)
 print('Predi_class_label_dataframe: ', Predi_class_label_dataframe)
-# dataframe['Class_label'] = Predi_class_label_dataframe    
+print('Predi_class_label_dataframe: ', len(Predi_class_label_dataframe))
+dataframe['Class_label'] = Predi_class_label_dataframe    
+print(dataframe)
+Predicted_class_label = prediction(Training_set,training_class_dataset_name)   
+classified_dataset = class_wise_dataset(dataframe)
 
-# for i in range(no_of_class):
-#     class_dataset_name.append('class_dataset'+ '_'+ str(Data_class[i]))
-#     training_class_dataset_name.append('training_class_dataset'+ '_'+ str(Data_class[i]))
-#     #class wise dataframe
-#     data = dataset_seperation(dataset,Data_class[i])
-#     training_class_dataset_name[i]= dataset_seperation(dataset,Data_class[i])
-#     print('training_class_dataset_name: ', training_class_dataset_name[i])
-
-
-    # plt.contour([X, Y,] Z, [levels], **kwargs)
-
+import matplotlib.pyplot as plt
+for i in range(no_of_class):
+    print(classified_dataset[i])
+    x1 = classified_dataset[i].iloc[:,1]
+    x2 = classified_dataset[i].iloc[:,2]
+    plt.scatter(x1,x2,label = 'Scatter plot of Data', marker = 'o')
+plt.show()
 
 
 
