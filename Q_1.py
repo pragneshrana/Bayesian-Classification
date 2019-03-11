@@ -1,13 +1,17 @@
-import pandas as pd 
-import numpy as np 
-import matplotlib as mlt 
+import seaborn as sn
+import pandas as pd
+import numpy as np
+import matplotlib as mlt
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
-#Loading Dataset
+# Loading Dataset
 dataset = pd.read_csv('Dataset_1_Team_41.csv')
-column = ['X_1','X_2','Class_value']
+column = ['X_1', 'X_2', 'Class_value']
+mean_file  = open("mean_file.txt","a+")
+varaince_file = open("varaince_file.txt","w+")
+
 
 # #Plotting data points
 # fig = plt.figure()
@@ -21,333 +25,348 @@ column = ['X_1','X_2','Class_value']
 # ax.set_zlabel('Y')
 # plt.show()
 
-#Number of class in the dataset
-Data_class = dataset.iloc[:,-1].unique() #classes in dataset 
+# Number of class in the dataset
+Data_class = dataset.iloc[:, -1].unique()  # classes in dataset
 Data_class = np.sort(Data_class)
-no_of_class = len(Data_class)       #number of class
-no_of_feature = dataset.shape[1]-1      #-1 as last column is outcome
+no_of_class = len(Data_class)  # number of class
+no_of_feature = dataset.shape[1]-1  # -1 as last column is outcome
 
-#Number of elemets in same class and minimum elements in the calss
-class_sample_count  = pd.DataFrame(dataset.Class_label.value_counts())
+# Number of elemets in same class and minimum elements in the calss
+class_sample_count = pd.DataFrame(dataset.Class_label.value_counts())
 # min_data_in_class = class_sample_count.min() #Class of each class is not same
 
-#Dataset sepearation of calss based on training set 
-def dataset_seperation(dataset,Data_class):
+# Dataset sepearation of calss based on training set
+
+
+def dataset_seperation(dataset, Data_class):
     '''
     Seperation of dataset based on class value 
     '''
-    class_dataset= pd.DataFrame([])
+    class_dataset = pd.DataFrame([])
     for i in range(len(dataset)):
-        if (dataset.iloc[:,-1][i]==Data_class):
-            class_dataset = class_dataset.append(dataset.iloc[i,:])
+        if (dataset.iloc[:, -1][i] == Data_class):
+            class_dataset = class_dataset.append(dataset.iloc[i, :])
     return class_dataset
 
-#Splitting the dataset
-def split_dataframe(df, p=[0.7,0.15,0.15]):
+# Splitting the dataset
+
+
+def split_dataframe(df, p=[0.7, 0.15, 0.15]):
     '''
     It will split the dataset into training, validation and testing set based on the given fractin value
     of p. By default p=[0.7,0.15,0.15]
     '''
-  
-    train, validate, test = np.split(df.sample(frac=1), [int(p[0]*len(df)), int((p[0]+p[1])*len(df))]) #split by [0-.7,.7-.85,.85-1]
-    return train,validate,test
+
+    train, validate, test = np.split(df.sample(frac=1), [int(
+        p[0]*len(df)), int((p[0]+p[1])*len(df))])  # split by [0-.7,.7-.85,.85-1]
+    return train, validate, test
 
 ##################################################
 # #####Generating Seperate Dataset ###############
 ##################################################
 
-# list of datsset names                          
+# list of datsset names
+
 
 Training_set = pd.DataFrame([])
 Testing_set = pd.DataFrame([])
 Validate_set = pd.DataFrame([])
 
 
-
-#Training Testing validation BY SPLIT FUNCTION
-Training_set,Validate_set,Testing_set = split_dataframe(dataset)
+# Training Testing validation BY SPLIT FUNCTION
+Training_set, Validate_set, Testing_set = split_dataframe(dataset)
 # Training_set.to_csv("Training_set.csv")
 # Validate_set.to_csv("Validate_set.csv")
 # Testing_set.to_csv("Testing_set.csv")
-def class_wise_dataset(training_dataset):
-    training_dataset = training_dataset.reset_index(drop=True)  #reindexing the old dataset 
-    print('training_dataset',training_dataset)
-    #Class dataset name and training dataset name 
-    class_dataset_name = []
-    class_wise_dataframe=[]
 
-    Data_class = training_dataset.iloc[:,-1].unique() #classes in dataset 
+
+def class_wise_dataset(training_dataset):
+    training_dataset = training_dataset.reset_index(
+        drop=True)  # reindexing the old dataset
+    print('training_dataset', training_dataset)
+    # Class dataset name and training dataset name
+    class_dataset_name = []
+    class_wise_dataframe = []
+
+    Data_class = training_dataset.iloc[:, -1].unique()  # classes in dataset
     Data_class = np.sort(Data_class)
-    print('Data_class',Data_class)
-    no_of_class = len(Data_class)       #number of class
+    print('Data_class', Data_class)
+    no_of_class = len(Data_class)  # number of class
 
     for i in range(no_of_class):
-        class_dataset_name.append('class_dataset'+ '_'+ str(Data_class[i]))
-        class_wise_dataframe.append('class_wise_dataframe'+ '_'+ str(Data_class[i]))
-        print('class_wise_dataframe',class_wise_dataframe)
-        class_dataset= pd.DataFrame([])
+        class_dataset_name.append('class_dataset' + '_' + str(Data_class[i]))
+        class_wise_dataframe.append(
+            'class_wise_dataframe' + '_' + str(Data_class[i]))
+        print('class_wise_dataframe', class_wise_dataframe)
+        class_dataset = pd.DataFrame([])
         for j in range(len(training_dataset)):
-            if (training_dataset.iloc[:,-1][j] == Data_class[i]):
-                class_dataset = class_dataset.append(training_dataset.iloc[j,:])
-        #class wise dataframe
-        class_wise_dataframe[i]=class_dataset #dataset_seperation(training_dataset,Data_class[i])
-        print('trining_dataset'  ,class_wise_dataframe[i] )
+            if (training_dataset.iloc[:, -1][j] == Data_class[i]):
+                class_dataset = class_dataset.append(
+                    training_dataset.iloc[j, :])
+        # class wise dataframe
+        # dataset_seperation(training_dataset,Data_class[i])
+        class_wise_dataframe[i] = class_dataset
+        print('trining_dataset', class_wise_dataframe[i])
         print("kk")
     return class_wise_dataframe
 
+
 training_class_dataset_name = class_wise_dataset(Training_set)
-print('training_class_dataset_name',training_class_dataset_name)
-
-
+print('training_class_dataset_name', training_class_dataset_name)
 
 
 #################################
 # covariance Matrix calculation #
 #################################
 
-#Model_1
+# Model_1
 def cov_calcualtion_1(data_cov):
     '''
     It will calculate cpvariance matrix.
     based on data set you have passed
     it calculates covariance matrix based passing two columns
     '''
-   
+
     no_of_feature = data_cov.shape[1]
     covariance_matrix = np.identity(no_of_feature)
     return covariance_matrix
 
-#Model:2
+# Model:2
+
+
 def cov_calcualtion_2(data_cov):
     '''
     It will calculate cpvariance matrix.
     based on data set you have passed
     it calculates covariance matrix based passing two columns
     '''
-   
-    no_of_feature = data_cov.shape[1]
-    n=2 #as pasing two values for correlation 
 
-    data=pd.DataFrame([])
-    covariance_matrix = np.zeros((no_of_feature,no_of_feature))
+    no_of_feature = data_cov.shape[1]
+    n = 2  # as pasing two values for correlation
+
+    data = pd.DataFrame([])
+    covariance_matrix = np.zeros((no_of_feature, no_of_feature))
 
     # identity = np.identity(no_of_feature)
 
-    #For(sigma(x,y))
+    # For(sigma(x,y))
     for p in range(no_of_feature):
-        for q in range(p,no_of_feature):    #p as matrix is semi-positive and symm 
+        for q in range(p, no_of_feature):  # p as matrix is semi-positive and symm
 
-            data[0]=data_cov.iloc[:,p]
-            data[1]=data_cov.iloc[:,q]  
+            data[0] = data_cov.iloc[:, p]
+            data[1] = data_cov.iloc[:, q]
 
-            #mean vector
+            # mean vector
             mean = []
             for i in range(n):
-                mean.append(data.iloc[:,i].mean())
-            
-            #minus from mean
-            data_minus_mean = []    #DMM
+                mean.append(data.iloc[:, i].mean())
+
+            # minus from mean
+            data_minus_mean = []  # DMM
             for i in range(len(data)):
-                X = data.iloc[i,:]
+                X = data.iloc[i, :]
                 data_minus_mean.append(X-mean)
-            
-            #multiplication of two column
+
+            # multiplication of two column
             multiply_DMM = []
             for i in range(len(data)):
-                multi= 1
-                for j in range (n):
+                multi = 1
+                for j in range(n):
                     multi = data_minus_mean[i][j]*multi
                 multiply_DMM.append(multi)
 
-            #addition
+            # addition
             summation_feature = []
             covari = []
             for i in range(n):
                 summation = 0
-                for j in range (len(data)):
+                for j in range(len(data)):
                     summation = summation + multiply_DMM[j]
                 summation_feature.append(summation)
                 covari.append(summation_feature[i]/(len(data)-1))
 
-            #Adding ans to matrix
-            covariance_matrix[p,q] = covari[0]
-            covariance_matrix[q,p] = covari[1]
+            # Adding ans to matrix
+            covariance_matrix[p, q] = covari[0]
+            covariance_matrix[q, p] = covari[1]
 
     # covariance_matrix = np.multiply(covariance_matrix,identity)
     return covariance_matrix
-    
-#Model:3
+
+# Model:3
+
+
 def cov_calcualtion_3(data_cov):
     '''
     It will calculate cpvariance matrix.
     based on data set you have passed
     it calculates covariance matrix based passing two columns
     '''
-   
-    no_of_feature = data_cov.shape[1]
-    n=2 #as pasing two values for correlation 
 
-    data=pd.DataFrame([])
-    covariance_matrix = np.zeros((no_of_feature,no_of_feature))
+    no_of_feature = data_cov.shape[1]
+    n = 2  # as pasing two values for correlation
+
+    data = pd.DataFrame([])
+    covariance_matrix = np.zeros((no_of_feature, no_of_feature))
 
     # identity = np.identity(no_of_feature)
 
-    #For(sigma(x,y))
+    # For(sigma(x,y))
     for p in range(no_of_feature):
-        for q in range(p,no_of_feature):    #p as matrix is semi-positive and symm 
+        for q in range(p, no_of_feature):  # p as matrix is semi-positive and symm
 
-            data[0]=data_cov.iloc[:,p]
-            data[1]=data_cov.iloc[:,q]  
+            data[0] = data_cov.iloc[:, p]
+            data[1] = data_cov.iloc[:, q]
 
-            #mean vector
+            # mean vector
             mean = []
             for i in range(n):
-                mean.append(data.iloc[:,i].mean())
-            
-            #minus from mean
-            data_minus_mean = []    #DMM
+                mean.append(data.iloc[:, i].mean())
+
+            # minus from mean
+            data_minus_mean = []  # DMM
             for i in range(len(data)):
-                X = data.iloc[i,:]
+                X = data.iloc[i, :]
                 data_minus_mean.append(X-mean)
-            
-            #multiplication of two column
+
+            # multiplication of two column
             multiply_DMM = []
             for i in range(len(data)):
-                multi= 1
-                for j in range (n):
+                multi = 1
+                for j in range(n):
                     multi = data_minus_mean[i][j]*multi
                 multiply_DMM.append(multi)
 
-            #addition
+            # addition
             summation_feature = []
             covari = []
             for i in range(n):
                 summation = 0
-                for j in range (len(data)):
+                for j in range(len(data)):
                     summation = summation + multiply_DMM[j]
                 summation_feature.append(summation)
                 covari.append(summation_feature[i]/(len(data)-1))
 
-            #Adding ans to matrix
-            covariance_matrix[p,q] = covari[0]
-            covariance_matrix[q,p] = covari[1]
-            
+            # Adding ans to matrix
+            covariance_matrix[p, q] = covari[0]
+            covariance_matrix[q, p] = covari[1]
+
     # covariance_matrix = np.multiply(covariance_matrix,identity)
     return covariance_matrix
 
-#Model:4
+# Model:4
+
+
 def cov_calcualtion_4(data_cov):
     '''
     It will calculate cpvariance matrix.
     based on data set you have passed
     it calculates covariance matrix based passing two columns
     '''
-   
+
     no_of_feature = data_cov.shape[1]
-    n=2 #as pasing two values for correlation 
+    n = 2  # as pasing two values for correlation
 
-    data=pd.DataFrame([])
-    covariance_matrix = np.zeros((no_of_feature,no_of_feature))
+    data = pd.DataFrame([])
+    covariance_matrix = np.zeros((no_of_feature, no_of_feature))
 
-    #For(sigma(x,y))
+    # For(sigma(x,y))
     for p in range(no_of_feature):
-        for q in range(p,no_of_feature):    #p as matrix is semi-positive and symm 
+        for q in range(p, no_of_feature):  # p as matrix is semi-positive and symm
 
-            data[0]=data_cov.iloc[:,p]
-            data[1]=data_cov.iloc[:,q]  
+            data[0] = data_cov.iloc[:, p]
+            data[1] = data_cov.iloc[:, q]
 
-            #mean vector
+            # mean vector
             mean = []
             for i in range(n):
-                mean.append(data.iloc[:,i].mean())
-            
-            #minus from mean
-            data_minus_mean = []    #DMM
+                mean.append(data.iloc[:, i].mean())
+
+            # minus from mean
+            data_minus_mean = []  # DMM
             for i in range(len(data)):
-                X = data.iloc[i,:]
+                X = data.iloc[i, :]
                 data_minus_mean.append(X-mean)
-            
-            #multiplication of two column
+
+            # multiplication of two column
             multiply_DMM = []
             for i in range(len(data)):
-                multi= 1
-                for j in range (n):
+                multi = 1
+                for j in range(n):
                     multi = data_minus_mean[i][j]*multi
                 multiply_DMM.append(multi)
 
-            #addition
+            # addition
             summation_feature = []
             covari = []
             for i in range(n):
                 summation = 0
-                for j in range (len(data)):
+                for j in range(len(data)):
                     summation = summation + multiply_DMM[j]
                 summation_feature.append(summation)
                 covari.append(summation_feature[i]/(len(data)-1))
 
-            #Adding ans to matrix
-            covariance_matrix[p,q] = covari[0]
-            covariance_matrix[q,p] = covari[1]
+            # Adding ans to matrix
+            covariance_matrix[p, q] = covari[0]
+            covariance_matrix[q, p] = covari[1]
     return covariance_matrix
-    
 
 
-
-#Model:5
+# Model:5
 def cov_calcualtion_5(data_cov):
     '''
     It will calculate cpvariance matrix.
     based on data set you have passed
-    it calculates covariance matrix based passing two columns
+    it calculates covariance matrix by passing two columns
     '''
-   
+    varaince_file = open("varaince_file.txt","a+")
+
     no_of_feature = data_cov.shape[1]
-    n=2 #as pasing two values for correlation 
+    n = 2  # as pasing two values for correlation
 
-    data=pd.DataFrame([])
-    covariance_matrix = np.zeros((no_of_feature,no_of_feature))
+    data = pd.DataFrame([])
+    covariance_matrix = np.zeros((no_of_feature, no_of_feature))
 
-    #For(sigma(x,y))
+    # For(sigma(x,y))
     for p in range(no_of_feature):
-        for q in range(p,no_of_feature):    #p as matrix is semi-positive and symm 
+        for q in range(p, no_of_feature):  # p as matrix is semi-positive and symm
 
-            data[0]=data_cov.iloc[:,p]
-            data[1]=data_cov.iloc[:,q]  
+            data[0] = data_cov.iloc[:, p]
+            data[1] = data_cov.iloc[:, q]
 
-            #mean vector
+            # mean vector
             mean = []
             for i in range(n):
-                mean.append(data.iloc[:,i].mean())
-            
-            #minus from mean
-            data_minus_mean = []    #DMM
+                mean.append(data.iloc[:, i].mean())
+
+            # minus from mean
+            data_minus_mean = []  # DMM
             for i in range(len(data)):
-                X = data.iloc[i,:]
+                X = data.iloc[i, :]
                 data_minus_mean.append(X-mean)
-            
-            #multiplication of two column
+
+            # multiplication of two column
             multiply_DMM = []
             for i in range(len(data)):
-                multi= 1
-                for j in range (n):
+                multi = 1
+                for j in range(n):
                     multi = data_minus_mean[i][j]*multi
                 multiply_DMM.append(multi)
 
-            #addition
+            # addition
             summation_feature = []
             covari = []
             for i in range(n):
                 summation = 0
-                for j in range (len(data)):
+                for j in range(len(data)):
                     summation = summation + multiply_DMM[j]
                 summation_feature.append(summation)
                 covari.append(summation_feature[i]/(len(data)-1))
 
-            #Adding ans to matrix
-            covariance_matrix[p,q] = covari[0]
-            covariance_matrix[q,p] = covari[1]
+            # Adding ans to matrix
+            covariance_matrix[p, q] = covari[0]
+            covariance_matrix[q, p] = covari[1]
+    varaince_file.write('\n' + str( covariance_matrix))
     return covariance_matrix
-    
 
 
 ########################################
@@ -357,11 +376,14 @@ def mean_of_class(data_set):
     '''
     caculated mean of each column
     '''
+
+    mean_file  = open("mean_file.txt","a+")
     mean = []
-    n = data_set.shape[1]        #no_of_feature
-    
+    n = data_set.shape[1]  # no_of_feature
+
     for i in range(n):
-        mean.append(data_set.iloc[:,i].mean())
+        mean.append(data_set.iloc[:, i].mean())
+    mean_file.write('\n' + str(list(mean)))
     return mean
 
 
@@ -369,58 +391,61 @@ def mean_of_class(data_set):
 # Posterior probability of each class#
 ######################################
 
-def likelihood(class_dataset,data_likelyhood):
+def likelihood(class_dataset, data_likelyhood):
     '''
     This fucntion calculated likelyhood density of each datapoints 
     and returns the density vector for each class
     pass arguments as (class based dataset , whole dataset)
     '''
 
-    print('class_dataset',class_dataset)
-    print('data_likelyhood',data_likelyhood)
-    #Number of class in the data_likelyhood
+    print('class_dataset', class_dataset)
+    print('data_likelyhood', data_likelyhood)
+    # Number of class in the data_likelyhood
     header_list = list(data_likelyhood)
     if ('Class_label' in header_list):
-        data_likelyhood = data_likelyhood.drop(columns=['Class_label']) #Dropped result colm
+        data_likelyhood = data_likelyhood.drop(
+            columns=['Class_label'])  # Dropped result colm
     header_list = list(class_dataset)
     if ('Class_label' in header_list):
-        class_dataset = class_dataset.drop(columns=['Class_label']) #Dropped result colm
-    no_of_feature = data_likelyhood.shape[1]     
-    n=no_of_feature
-    ####covariacne called
-    #For Model:1
+        class_dataset = class_dataset.drop(
+            columns=['Class_label'])  # Dropped result colm
+    no_of_feature = data_likelyhood.shape[1]
+    n = no_of_feature
+    # covariacne called
+    # For Model:1
     # covariance_matrix = np.matrix(cov_calcualtion_1(class_dataset))
-    #For Model:2
+    # For Model:2
     # covariance_matrix = np.matrix(cov_calcualtion_2(data_likelyhood))
-    #For Model:3
+    # For Model:3
     # covariance_matrix = np.matrix(cov_calcualtion_3(class_dataset))
-    #For Model:4
+    # For Model:4
     # covariance_matrix = np.matrix(cov_calcualtion_4(data_likelyhood))
-    #For Model:5
+    # For Model:5
     covariance_matrix = np.matrix(cov_calcualtion_5(class_dataset))
 
     # print('covariance_matrix: ', covariance_matrix)
     inv_covariance_matrix = np.linalg.inv(covariance_matrix)
 
-    #Multivariate gaussain distribution
+    # Multivariate gaussain distribution
 
     cov_matrix_det = np.linalg.det(covariance_matrix)
     print('cov_matrix_det: ', cov_matrix_det)
-    density_function_vector=[]
-    
-    #mean vector
+    density_function_vector = []
+
+    # mean vector
     mean = mean_of_class(class_dataset)
 
     for i in range(len(data_likelyhood)):
-        X=np.array(data_likelyhood.iloc[i,:])
-        a = (X-mean).reshape(n,1)
-        #Gaussiaan Calcualtion
-        density_function = (1/( (( 2*np.pi)**(n/2) )* (np.sqrt(cov_matrix_det))) )* (np.exp((-1/2) * np.transpose(a) * inv_covariance_matrix * a ))
+        X = np.array(data_likelyhood.iloc[i, :])
+        a = (X-mean).reshape(n, 1)
+        # Gaussiaan Calcualtion
+        density_function = (1/(((2*np.pi)**(n/2)) * (np.sqrt(cov_matrix_det)))) * (np.exp((-1/2) * np.transpose(a) * inv_covariance_matrix * a))
         density_function_vector.append(float(density_function))
     # print('density_function_vector: ', density_function_vector)
     return density_function_vector
 
-def prediction(Training_set,training_class_dataset_name):
+
+def prediction(Training_set, training_class_dataset_name):
     #######################
     # Prior of each class #
     #######################
@@ -434,35 +459,40 @@ def prediction(Training_set,training_class_dataset_name):
         class_prior.append(len(training_class_dataset_name[i])/Total_sample)
     # print('class_prior: ', class_prior)
 
-
-    #Likelyhood calculation
+    # Likelyhood calculation
     class_likelyhood = []
-    density_dataset=pd.DataFrame([])
+    density_dataset = pd.DataFrame([])
     for i in range(no_of_class):
-        density_function_vector = likelihood(training_class_dataset_name[i],Training_set) 
-        density_dataset["Density_fucntion_class_"+str(i)] = density_function_vector 
-        #likelyhood into prior
-        density_dataset["Density_fucntion_class_"+str(i)] =  density_dataset["Density_fucntion_class_"+str(i)].multiply(class_prior[i])
+        density_function_vector = likelihood(
+            training_class_dataset_name[i], Training_set)
+        density_dataset["Density_fucntion_class_" +
+                        str(i)] = density_function_vector
+        # likelyhood into prior
+        density_dataset["Density_fucntion_class_"+str(
+            i)] = density_dataset["Density_fucntion_class_"+str(i)].multiply(class_prior[i])
 
-    #Calculation of Evidence
-    density_dataset["Evidence"] = np.zeros(len(density_dataset))    #Evidence intialized with zeros 
+    # Calculation of Evidence
+    density_dataset["Evidence"] = np.zeros(
+        len(density_dataset))  # Evidence intialized with zeros
     for i in range(no_of_class):
-        density_dataset["Evidence"] = density_dataset["Density_fucntion_class_"+str(i)] + density_dataset["Evidence"]
+        density_dataset["Evidence"] = density_dataset["Density_fucntion_class_" +
+                                                      str(i)] + density_dataset["Evidence"]
         # print('density_dataset["Evidence"]: ', density_dataset["Evidence"])
 
-    posterior_dataset=pd.DataFrame([])
-    #Divide likelyhood into prior by evidence
+    posterior_dataset = pd.DataFrame([])
+    # Divide likelyhood into prior by evidence
     for i in range(no_of_class):
-        posterior_dataset["Density_fucntion_class_"+str(i)]  = density_dataset["Density_fucntion_class_"+str(i)] / density_dataset["Evidence"]
+        posterior_dataset["Density_fucntion_class_"+str(
+            i)] = density_dataset["Density_fucntion_class_"+str(i)] / density_dataset["Evidence"]
 
     print('density_dataset: ', density_dataset)
 
     ########################
     # loss Matrix Defined  #
     ########################
-    l = np.matrix([ [0,1,2],
-                    [1,0,1],
-                    [2,1,0] ])
+    l = np.matrix([[0, 1, 2],
+                   [1, 0, 1],
+                   [2, 1, 0]])
     print('l: ', l)
 
     #############################
@@ -483,150 +513,174 @@ def prediction(Training_set,training_class_dataset_name):
     #     if (LQ_left <= LQ_righT):
     #         True_count +=1
 
-    #class Prediction 
+    # class Prediction
     posterior_probability = []
     Predicted_class_label = []
     for i in range(len(density_dataset)):
-        posterior_array = density_dataset.iloc[i,:3]
-        loss_func_array = posterior_array.dot(l)    #loss_func and posterior array multiplication (1*3)(3*3)
+        posterior_array = density_dataset.iloc[i, :3]
+        # loss_func and posterior array multiplication (1*3)(3*3)
+        loss_func_array = posterior_array.dot(l)
         min_val = min(loss_func_array)
         posterior_probability.append(min_val)
         index_max = list(loss_func_array).index(min_val)
         print(index_max)
         Predicted_class_label.append(index_max)
-    print('posterior_probability',posterior_probability)
-
+    print('posterior_probability', posterior_probability)
 
     return Predicted_class_label
-
-
 
 
 ####################
 # Confusion Matrix #
 ####################
-def confusion_matrix(actual_result,predicted_result):
+def confusion_matrix(actual_result, predicted_result):
     '''
     Plots the confusion matrix. For that you have to pass the two array actual result(given classes) and
     Predicted result 
     '''
     import pandas as pd
     import numpy as np
-    classes_name =  list (set (actual_result))
+    classes_name = list(set(actual_result))
     no_of_classes = len(classes_name)
     conf_matrix = pd.DataFrame(np.zeros((no_of_classes, no_of_classes)))
     combined_array_dataset = pd.DataFrame()
-    combined_array_dataset [0] = actual_result
-    combined_array_dataset [1] = predicted_result
+    combined_array_dataset[0] = actual_result
+    combined_array_dataset[1] = predicted_result
     for i in range(no_of_classes):
-        subdataset = combined_array_dataset[combined_array_dataset [0] == classes_name[i]]
+        subdataset = combined_array_dataset[combined_array_dataset[0]
+                                            == classes_name[i]]
         print('subdataset: ', subdataset)
         val = subdataset[1].value_counts()
-        val.sort_index(inplace=True)        #sorting values by index
+        val.sort_index(inplace=True)  # sorting values by index
         print('val: ', val.shape)
         indexList = val.index
         print('indexList: ', indexList)
-            
+
         if (len(indexList) == no_of_classes):
             for j in range(no_of_classes):
-                #If there is no mis classification
+                # If there is no mis classification
                 if(indexList[j] == j):
                     print('j: ', j)
-                    print('indexList[j]',indexList[j])
+                    print('indexList[j]', indexList[j])
                     try:
-                        conf_matrix.iloc[i,j] = val.iloc[j]
+                        conf_matrix.iloc[i, j] = val.iloc[j]
                     except IndexError:
-                        conf_matrix.iloc[i,j] = 0
+                        conf_matrix.iloc[i, j] = 0
                     print('conf_matrix: ', conf_matrix)
                 else:
-                    conf_matrix.iloc[i,j] = 0
+                    conf_matrix.iloc[i, j] = 0
                     print('conf_matrix: ', conf_matrix)
         else:
             # In case if class has less misclassification than total class
-            m=0
+            m = 0
             for j in range(no_of_classes):
-                #If there is no mis classification
+                # If there is no mis classification
                 try:
                     if(indexList[m] == j):
                         try:
-                            conf_matrix.iloc[i,j] = val.iloc[m]
+                            conf_matrix.iloc[i, j] = val.iloc[m]
                         except IndexError:
-                            conf_matrix.iloc[i,j] = 0
+                            conf_matrix.iloc[i, j] = 0
                         print('conf_matrix: ', conf_matrix)
-                        m+=1
+                        m += 1
                     else:
-                        continue  
+                        continue
                 except IndexError:
-                    continue    
+                    continue
     print('conf_matrix: ', conf_matrix)
     return conf_matrix
 
-def accuracy(Predicted_class_label , Actual_class_label):
-    print("Predicted_class_label",Predicted_class_label)
-    print("Actual_class_label",Actual_class_label)
-    #Acuuracy Check
-    matched_count =  0
+
+def accuracy(Predicted_class_label, Actual_class_label):
+    print("Predicted_class_label", Predicted_class_label)
+    print("Actual_class_label", Actual_class_label)
+    # Acuuracy Check
+    matched_count = 0
     not_matched_count = 0
 
     for i in range(len(Predicted_class_label)):
         if (Predicted_class_label[i] == Actual_class_label[i]):
-            matched_count+=1
+            matched_count += 1
         else:
-            not_matched_count+=1
+            not_matched_count += 1
 
-    Acuuracy  = matched_count / (matched_count + not_matched_count )
+    Acuuracy = matched_count / (matched_count + not_matched_count)
     print('Acuuracy: ', Acuuracy)
 
-Actual_class_label = Training_set["Class_label"]
-Actual_class_label = Actual_class_label.reset_index(drop=True)  #reindexing the old dataset 
 
-Predicted_class_label = prediction(Training_set,training_class_dataset_name)   
+Actual_class_label = Training_set["Class_label"]
+Actual_class_label = Actual_class_label.reset_index(
+    drop=True)  # reindexing the old dataset
+
+Predicted_class_label = prediction(Training_set, training_class_dataset_name)
 accuracy(Predicted_class_label, Actual_class_label)
 
 
-####Creation of confusion matrix and plotting
-import seaborn as sn
-confu_matrix = confusion_matrix(Actual_class_label,Predicted_class_label)
-plt.figure(figsize = (10,7))
+############################################
+# Creation of confusion matrix and plotting#
+############################################
+
+confu_matrix = confusion_matrix(Actual_class_label, Predicted_class_label)
+plt.figure(figsize=(10, 7))
 sn.heatmap(confu_matrix, annot=True)
-plt.show()
+plt.savefig('confusion.png')
 
-import matplotlib.pyplot as plt
-for i in range(no_of_class):
-    x1 = training_class_dataset_name[i].iloc[:,1]
-    x2 = training_class_dataset_name[i].iloc[:,2]
-    plt.scatter(x1,x2,label = 'Scatter plot of Data', marker = 'o')
-
-#Boundary Plotting 
-x1 = np.linspace(-100,50,500)
-x2 = np.linspace(-100,80,500)
+############################
+# Decision Surface Plotting#
+############################
+n=100
+x1 = list(np.linspace(-150, 100, n))
+x2 = list(np.linspace(-150, 100, n))
 dataframe = pd.DataFrame([])
-dataframe['X1'] = x1
-dataframe['X2'] = x2
-print(dataframe)
-Predi_class_label_dataframe = prediction(dataframe,training_class_dataset_name)
-print('Predi_class_label_dataframe: ', Predi_class_label_dataframe)
-print('Predi_class_label_dataframe: ', len(Predi_class_label_dataframe))
-dataframe['Class_label'] = Predi_class_label_dataframe    
-print(dataframe)
-Predicted_class_label = prediction(Training_set,training_class_dataset_name)   
+
+#Meshgrid
+for i in range(len(x1)):
+    for j in range(len(x2)):
+        data_vector = [x1[i], x2[j]]
+        data_vector = pd.Series(data_vector)
+        dataframe = dataframe.append(data_vector, ignore_index=True)
+
+Predi_class_label_dataframe = prediction(dataframe, training_class_dataset_name)
+dataframe['Class_label'] = Predi_class_label_dataframe
+Predicted_class_label = prediction(Training_set, training_class_dataset_name)
 classified_dataset = class_wise_dataset(dataframe)
 
-import matplotlib.pyplot as plt
+plt.figure(figsize=(10, 7))
+
 for i in range(no_of_class):
     print(classified_dataset[i])
-    x1 = classified_dataset[i].iloc[:,1]
-    x2 = classified_dataset[i].iloc[:,2]
-    plt.scatter(x1,x2,label = 'Scatter plot of Data', marker = 'o')
-plt.show()
+    x1 = classified_dataset[i].iloc[:, 0]
+    x2 = classified_dataset[i].iloc[:, 1]
+    plt.scatter(x1, x2, label='Scatter plot of Data', marker='o')
 
 
+#############################
+# Given Data Points Plotting#
+#############################
+for i in range(no_of_class):
+    x1 = training_class_dataset_name[i]['x_1']
+    print('training_class_dataset_name[i]: ', training_class_dataset_name[i])
+    x2 = training_class_dataset_name[i]['x_2']
+    plt.scatter(x1, x2, label='Scatter plot of Data', marker='o')
 
+################
+# Countour Plot#
+################
+n=50
+x1 = list(np.linspace(-140, 100, n))
+x2 = list(np.linspace(-140, 100, n))
+dataframe = pd.DataFrame([])
 
-    
-
-
-
-
-
-
+#Meshgrid
+for i in range(len(x1)):
+    for j in range(len(x2)):
+        data_vector = [x1[i], x2[j]]
+        data_vector = pd.Series(data_vector)
+        dataframe = dataframe.append(data_vector, ignore_index=True)
+density_array = []
+for i in range(no_of_class):
+    density_vector = likelihood(training_class_dataset_name[i],dataframe)
+    density_vector = density_vector[::-1]
+    density_array = np.reshape(density_vector,[n,-1])
+    plt.contour(x1,x2,density_array)
+plt.savefig('contour.png')
