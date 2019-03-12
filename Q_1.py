@@ -7,7 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 # Loading Dataset
-dataset = pd.read_csv('Dataset_1_Team_41.csv')
+dataset = pd.read_csv('Dataset_3_Team_41.csv')
 column = ['X_1', 'X_2', 'Class_value']
 mean_file  = open("mean_file.txt","a+")
 varaince_file = open("varaince_file.txt","w+")
@@ -628,7 +628,7 @@ plt.savefig('confusion.png')
 ############################
 # Decision Surface Plotting#
 ############################
-n=100
+n=10
 x1 = list(np.linspace(-150, 100, n))
 x2 = list(np.linspace(-150, 100, n))
 dataframe = pd.DataFrame([])
@@ -666,21 +666,33 @@ for i in range(no_of_class):
 ################
 # Countour Plot#
 ################
-n=50
-x1 = list(np.linspace(-140, 100, n))
-x2 = list(np.linspace(-140, 100, n))
+n=10
+x1 = list(np.linspace(-150, 70, n))
+x2 = list(np.linspace(-150, 70, n))
 dataframe = pd.DataFrame([])
 
 #Meshgrid
+#Fucnking this loop as contour plot required such matrix form
 for i in range(len(x1)):
     for j in range(len(x2)):
-        data_vector = [x1[i], x2[j]]
+        data_vector = [x2[j], x1[i]]
         data_vector = pd.Series(data_vector)
         dataframe = dataframe.append(data_vector, ignore_index=True)
+print('dataframe: ', dataframe)
 density_array = []
 for i in range(no_of_class):
     density_vector = likelihood(training_class_dataset_name[i],dataframe)
-    density_vector = density_vector[::-1]
-    density_array = np.reshape(density_vector,[n,-1])
+    density_vector = np.array(density_vector)
+    density_array = density_vector.reshape(-1,n)
     plt.contour(x1,x2,density_array)
 plt.savefig('contour.png')
+
+#########################
+# Eigen Vector Plotting #
+#########################
+for i in range(no_of_class):
+    cov_mat = cov_calcualtion_5(training_class_dataset_name[i])
+    print('cov_mat: ', cov_mat)
+    w, v = np.linalg.eig(cov_mat)
+    print('v: ', v)
+    print('w: ', w)
