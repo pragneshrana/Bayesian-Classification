@@ -608,11 +608,11 @@ def accuracy(Predicted_class_label, Actual_class_label):
     print('Acuuracy: ', Acuuracy)
 
 
-Actual_class_label = Training_set["Class_label"]
+Actual_class_label = Testing_set["Class_label"]
 Actual_class_label = Actual_class_label.reset_index(
     drop=True)  # reindexing the old dataset
 
-Predicted_class_label = prediction(Training_set, training_class_dataset_name)
+Predicted_class_label = prediction(Testing_set, training_class_dataset_name)
 accuracy(Predicted_class_label, Actual_class_label)
 
 
@@ -629,8 +629,8 @@ plt.savefig('confusion.png')
 # Decision Surface Plotting#
 ############################
 n=10
-x1 = list(np.linspace(-150, 100, n))
-x2 = list(np.linspace(-150, 100, n))
+x1 = list(np.linspace(-150, 150, n))
+x2 = list(np.linspace(-150, 150, n))
 dataframe = pd.DataFrame([])
 
 #Meshgrid
@@ -667,8 +667,8 @@ for i in range(no_of_class):
 # Countour Plot#
 ################
 n=10
-x1 = list(np.linspace(-150, 70, n))
-x2 = list(np.linspace(-150, 70, n))
+x1 = list(np.linspace(-150, 150, n))
+x2 = list(np.linspace(-150, 150, n))
 dataframe = pd.DataFrame([])
 
 #Meshgrid
@@ -693,6 +693,10 @@ plt.savefig('contour.png')
 for i in range(no_of_class):
     cov_mat = cov_calcualtion_5(training_class_dataset_name[i])
     print('cov_mat: ', cov_mat)
-    w, v = np.linalg.eig(cov_mat)
-    print('v: ', v)
-    print('w: ', w)
+    W,V = np.linalg.eig(cov_mat)
+    data_of_class = training_class_dataset_name[i]
+    data_of_class = data_of_class.drop(columns=['Class_label'])    
+    mean = mean_of_class(data_of_class)
+    print('mean: ', mean)
+    plt.quiver(*mean, V[:,0], V[:,1], color=['r','b','g'], scale=5)
+plt.show()
